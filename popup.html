@@ -55,14 +55,88 @@
         font-weight: bold;
         font-size: 14px;
       }
+
+      /* New CSS for Prompts */
+      hr {
+        margin: 20px 0;
+        border: 0;
+        border-top: 1px solid #ddd;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0 0 15px 0;
+      }
+      li {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      li .prompt-content {
+        word-break: break-word;
+        font-size: 14px;
+      }
+      li .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+      }
+      li .actions button {
+        width: auto;
+        padding: 5px 10px;
+        font-size: 12px;
+        background-color: #95a5a6;
+      }
+      li .actions button.edit-btn {
+        background-color: #f39c12;
+      }
+      li .actions button.delete-btn {
+        background-color: #e74c3c;
+      }
+      li .actions button:hover {
+        opacity: 0.9;
+      }
+      #newPromptText {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-family: inherit;
+      }
+      .edit-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 5px;
+        margin-bottom: 5px;
+        font-family: inherit;
+      }
     </style>
   </head>
   <body>
     <h3>Resume Saver</h3>
     <textarea id="resumeText" rows="10" cols="30" placeholder="Paste your resume here..."></textarea>
-    <br>
     <button id="saveResume">Save Resume</button>
     <p id="status"></p>
+
+    <hr>
+
+    <h3>Prompts</h3>
+    <ul id="promptsList">
+      <!-- Prompts will be added here dynamically -->
+    </ul>
+
+    <div id="addPromptContainer">
+      <textarea id="newPromptText" rows="2" placeholder="Enter new prompt"></textarea>
+      <button id="addPromptBtn">Add Prompt</button>
+    </div>
+
     <script src="popup.js"></script>
   </body>
 </html>
