@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Shell Chrome Extension",
+  "name": "Job Application Optimizer",
   "version": "1.0.0",
-  "description": "A basic shell for a Chrome Extension.",
+  "description": "A Chrome Extension to optimize job applications.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Open Shell Extension"
+    "default_title": "Job Application Optimizer"
   },
   "background": {
     "service_worker": "background.js"
