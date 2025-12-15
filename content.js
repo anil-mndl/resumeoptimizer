@@ -108,10 +108,31 @@ function createModal() {
   resumeGroup.appendChild(resumeLabel);
   resumeGroup.appendChild(resumeArea);
 
+  // Response Display (Hidden by default until submit)
+  const responseGroup = document.createElement('div');
+  responseGroup.className = 'resume-optimizer-form-group';
+  responseGroup.id = 'resume-optimizer-response-group';
+  responseGroup.style.display = 'none';
+
+  const responseLabel = document.createElement('label');
+  responseLabel.className = 'resume-optimizer-label';
+  responseLabel.textContent = 'Response';
+
+  const responseArea = document.createElement('div');
+  responseArea.id = 'resume-optimizer-response-area';
+  responseArea.className = 'resume-optimizer-textarea';
+  responseArea.style.backgroundColor = '#f4f4f4';
+  responseArea.style.overflowY = 'auto';
+  responseArea.style.whiteSpace = 'pre-wrap';
+
+  responseGroup.appendChild(responseLabel);
+  responseGroup.appendChild(responseArea);
+
   body.appendChild(promptGroup);
   body.appendChild(customPromptGroup);
   body.appendChild(textGroup);
   body.appendChild(resumeGroup);
+  body.appendChild(responseGroup);
 
   // Footer
   const footer = document.createElement('div');
@@ -156,6 +177,12 @@ function openModal(selectionText) {
   const resumeGroup = document.getElementById('resume-optimizer-resume-group');
   resumeGroup.style.display = 'none';
 
+  // Hide/Clear Response
+  const responseGroup = document.getElementById('resume-optimizer-response-group');
+  responseGroup.style.display = 'none';
+  const responseArea = document.getElementById('resume-optimizer-response-area');
+  responseArea.textContent = '';
+
   // Populate Prompts
   const promptSelect = document.getElementById('resume-optimizer-prompt-select');
   promptSelect.innerHTML = '<option value="">-- Select a Prompt --</option>'; // Reset
@@ -180,9 +207,79 @@ function closeModal() {
 }
 
 function handleSubmit() {
-  // For now, just close the modal
-  closeModal();
+  const promptSelect = document.getElementById('resume-optimizer-prompt-select');
+  const customPromptInput = document.getElementById('resume-optimizer-custom-prompt');
+  const textArea = document.getElementById('resume-optimizer-text-area');
+  const responseGroup = document.getElementById('resume-optimizer-response-group');
+  const responseArea = document.getElementById('resume-optimizer-response-area');
+  const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+
+  let selectedPrompt = '';
+  // Check custom prompt first, then dropdown
+  if (customPromptInput.value.trim()) {
+    selectedPrompt = customPromptInput.value.trim();
+  } else if (promptSelect.value) {
+    // We only have the ID in the value, we need the text.
+    // However, the dropdown text is what we want? Or do we need to fetch from storage?
+    // The option textContent is the prompt text.
+    selectedPrompt = promptSelect.options[promptSelect.selectedIndex].textContent;
+  }
+
+  if (!selectedPrompt) {
+    alert('Please select a prompt or enter a custom one.');
+    return;
+  }
+
+  const selectionText = textArea.value;
+
+  // Show loading state
+  responseGroup.style.display = 'flex';
+  responseArea.textContent = 'Generating response...';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Processing...';
+
+  chrome.storage.local.get(['resume'], (result) => {
+    const resume = result.resume || '';
+
+    // Clear response area for streaming
+    responseArea.textContent = '';
+
+    chrome.runtime.sendMessage({
+      action: 'generate_response',
+      prompt: selectedPrompt,
+      content: selectionText,
+      resume: resume
+    });
+  });
 }
+
+// Listen for stream updates
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'stream_update') {
+    const responseArea = document.getElementById('resume-optimizer-response-area');
+    if (responseArea) {
+      responseArea.textContent += request.chunk;
+      // Auto-scroll to bottom
+      responseArea.scrollTop = responseArea.scrollHeight;
+    }
+  } else if (request.action === 'stream_end') {
+    const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  } else if (request.action === 'stream_error') {
+    const responseArea = document.getElementById('resume-optimizer-response-area');
+    const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+    if (responseArea) {
+      responseArea.textContent = 'Error: ' + request.error;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+});
 
 function toggleResume() {
   const resumeGroup = document.getElementById('resume-optimizer-resume-group');

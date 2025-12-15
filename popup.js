@@ -152,4 +152,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- API Key Logic ---
+  const apiKeyInput = document.getElementById('apiKey');
+  const saveApiKeyBtn = document.getElementById('saveApiKey');
+
+  // Load API Key
+  chrome.storage.local.get(['openai_apikey'], (result) => {
+    if (result.openai_apikey) {
+      apiKeyInput.value = result.openai_apikey;
+    }
+  });
+
+  // Save API Key
+  saveApiKeyBtn.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    chrome.storage.local.set({ openai_apikey: key }, () => {
+      showStatus('API Key saved!');
+    });
+  });
+
 });
