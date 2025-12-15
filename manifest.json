@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Shell Chrome Extension",
+  "version": "1.0.0",
+  "description": "A basic shell for a Chrome Extension.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Open Shell Extension"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": []
+}
