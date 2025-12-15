@@ -1,6 +1,6 @@
-# Shell Chrome Extension
+# Job Application Optimizer
 
-This is a basic shell for a Chrome Extension using Manifest V3.
+This is the Job Application Optimizer Chrome Extension using Manifest V3.
 
 ## Structure
 

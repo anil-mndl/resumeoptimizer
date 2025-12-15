@@ -29,7 +29,7 @@ function createModal() {
 
   const title = document.createElement('h2');
   title.className = 'resume-optimizer-modal-title';
-  title.textContent = 'Resume Optimizer';
+  title.textContent = 'Job Application Optimizer';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'resume-optimizer-close-btn';

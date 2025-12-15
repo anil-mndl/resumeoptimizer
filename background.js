@@ -1,9 +1,9 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Shell Chrome Extension installed.');
+  console.log('Job Application Optimizer installed.');
 
   chrome.contextMenus.create({
     id: "init-resume-optimizer",
-    title: "Init Resume Optimizer",
+    title: "Job Application Optimizer",
     contexts: ["all"]
   });
 });
