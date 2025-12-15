@@ -17,7 +17,7 @@
 /* Modal Container */
 .resume-optimizer-modal {
   background-color: #ffffff;
-  width: 500px;
+  width: 800px;
   max-width: 90%;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -131,4 +131,21 @@
 
 .resume-optimizer-submit-btn:hover {
   background-color: #357abd;
+}
+
+.resume-optimizer-secondary-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-right: 10px;
+}
+
+.resume-optimizer-secondary-btn:hover {
+  background-color: #5a6268;
 }
