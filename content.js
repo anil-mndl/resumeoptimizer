@@ -58,6 +58,23 @@ function createModal() {
   promptGroup.appendChild(promptLabel);
   promptGroup.appendChild(promptSelect);
 
+  // Custom Prompt
+  const customPromptGroup = document.createElement('div');
+  customPromptGroup.className = 'resume-optimizer-form-group';
+
+  const customPromptLabel = document.createElement('label');
+  customPromptLabel.className = 'resume-optimizer-label';
+  customPromptLabel.textContent = 'Or Create Custom Prompt';
+
+  const customPromptInput = document.createElement('textarea');
+  customPromptInput.id = 'resume-optimizer-custom-prompt';
+  customPromptInput.className = 'resume-optimizer-textarea';
+  customPromptInput.rows = 2;
+  customPromptInput.style.minHeight = '60px';
+
+  customPromptGroup.appendChild(customPromptLabel);
+  customPromptGroup.appendChild(customPromptInput);
+
   // Text Area
   const textGroup = document.createElement('div');
   textGroup.className = 'resume-optimizer-form-group';
@@ -73,18 +90,44 @@ function createModal() {
   textGroup.appendChild(textLabel);
   textGroup.appendChild(textArea);
 
+  // Resume Display (Hidden by default)
+  const resumeGroup = document.createElement('div');
+  resumeGroup.className = 'resume-optimizer-form-group';
+  resumeGroup.id = 'resume-optimizer-resume-group';
+  resumeGroup.style.display = 'none';
+
+  const resumeLabel = document.createElement('label');
+  resumeLabel.className = 'resume-optimizer-label';
+  resumeLabel.textContent = 'Current Resume';
+
+  const resumeArea = document.createElement('textarea');
+  resumeArea.id = 'resume-optimizer-resume-area';
+  resumeArea.className = 'resume-optimizer-textarea';
+  resumeArea.readOnly = true;
+
+  resumeGroup.appendChild(resumeLabel);
+  resumeGroup.appendChild(resumeArea);
+
   body.appendChild(promptGroup);
+  body.appendChild(customPromptGroup);
   body.appendChild(textGroup);
+  body.appendChild(resumeGroup);
 
   // Footer
   const footer = document.createElement('div');
   footer.className = 'resume-optimizer-modal-footer';
+
+  const viewResumeBtn = document.createElement('button');
+  viewResumeBtn.className = 'resume-optimizer-secondary-btn';
+  viewResumeBtn.textContent = 'View Resume';
+  viewResumeBtn.addEventListener('click', toggleResume);
 
   const submitBtn = document.createElement('button');
   submitBtn.className = 'resume-optimizer-submit-btn';
   submitBtn.textContent = 'Submit';
   submitBtn.addEventListener('click', handleSubmit);
 
+  footer.appendChild(viewResumeBtn);
   footer.appendChild(submitBtn);
 
   // Assemble
@@ -104,6 +147,14 @@ function openModal(selectionText) {
   // Populate Text Area
   const textArea = document.getElementById('resume-optimizer-text-area');
   textArea.value = selectionText || '';
+
+  // Clear Custom Prompt
+  const customPromptInput = document.getElementById('resume-optimizer-custom-prompt');
+  customPromptInput.value = '';
+
+  // Hide Resume
+  const resumeGroup = document.getElementById('resume-optimizer-resume-group');
+  resumeGroup.style.display = 'none';
 
   // Populate Prompts
   const promptSelect = document.getElementById('resume-optimizer-prompt-select');
@@ -131,4 +182,18 @@ function closeModal() {
 function handleSubmit() {
   // For now, just close the modal
   closeModal();
+}
+
+function toggleResume() {
+  const resumeGroup = document.getElementById('resume-optimizer-resume-group');
+  const resumeArea = document.getElementById('resume-optimizer-resume-area');
+
+  if (resumeGroup.style.display === 'none') {
+    resumeGroup.style.display = 'flex';
+    chrome.storage.local.get(['resume'], (result) => {
+      resumeArea.value = result.resume || 'No resume saved.';
+    });
+  } else {
+    resumeGroup.style.display = 'none';
+  }
 }
