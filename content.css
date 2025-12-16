@@ -19,6 +19,7 @@
   background-color: #ffffff;
   width: 800px;
   max-width: 90%;
+  max-height: 90vh;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   display: flex;
@@ -40,6 +41,7 @@
   justify-content: space-between;
   align-items: center;
   background-color: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .resume-optimizer-modal-title {
@@ -69,6 +71,8 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .resume-optimizer-form-group {
@@ -115,6 +119,7 @@
   display: flex;
   justify-content: flex-end;
   background-color: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .resume-optimizer-submit-btn {
