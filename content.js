@@ -6,6 +6,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 let modalOverlay = null;
+let promptLookup = {}; // Map to store full prompt text by value
 
 function createModal() {
   // Create overlay
@@ -186,13 +187,36 @@ function openModal(selectionText) {
   // Populate Prompts
   const promptSelect = document.getElementById('resume-optimizer-prompt-select');
   promptSelect.innerHTML = '<option value="">-- Select a Prompt --</option>'; // Reset
+  promptLookup = {}; // Reset lookup
 
+  // Load In-Built Prompts
+  if (typeof DEFAULT_PROMPTS !== 'undefined') {
+    DEFAULT_PROMPTS.forEach((item, index) => {
+      const id = `builtin_${index}`;
+      promptLookup[id] = item.prompt;
+
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = `[in-built] ${item.description}`;
+      promptSelect.appendChild(option);
+    });
+  }
+
+  // Load User Prompts
   chrome.storage.local.get(['prompts'], (result) => {
     const prompts = result.prompts || [];
     prompts.forEach(prompt => {
+      const id = prompt.id.toString(); // Ensure ID is string
+      promptLookup[id] = prompt.text;
+
+      let label = prompt.text;
+      if (label.length > 30) {
+        label = label.substring(0, 30) + '...';
+      }
+
       const option = document.createElement('option');
-      option.value = prompt.id; // Using ID as value
-      option.textContent = prompt.text;
+      option.value = id;
+      option.textContent = label;
       promptSelect.appendChild(option);
     });
   });
@@ -219,10 +243,8 @@ function handleSubmit() {
   if (customPromptInput.value.trim()) {
     selectedPrompt = customPromptInput.value.trim();
   } else if (promptSelect.value) {
-    // We only have the ID in the value, we need the text.
-    // However, the dropdown text is what we want? Or do we need to fetch from storage?
-    // The option textContent is the prompt text.
-    selectedPrompt = promptSelect.options[promptSelect.selectedIndex].textContent;
+    // Look up the full prompt text using the value
+    selectedPrompt = promptLookup[promptSelect.value] || '';
   }
 
   if (!selectedPrompt) {
