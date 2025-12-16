@@ -243,6 +243,7 @@ function handleSubmit() {
 
     // Clear response area for streaming
     responseArea.textContent = '';
+    responseArea.style.whiteSpace = 'pre-wrap'; // Reset for streaming
 
     chrome.runtime.sendMessage({
       action: 'generate_response',
@@ -263,7 +264,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       responseArea.scrollTop = responseArea.scrollHeight;
     }
   } else if (request.action === 'stream_end') {
+    const responseArea = document.getElementById('resume-optimizer-response-area');
     const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+
+    if (responseArea) {
+      const rawMarkdown = responseArea.textContent;
+      try {
+        const parsedHtml = marked.parse(rawMarkdown);
+        const cleanHtml = DOMPurify.sanitize(parsedHtml);
+        responseArea.innerHTML = cleanHtml;
+        responseArea.style.whiteSpace = 'normal'; // Allow Markdown to handle spacing
+      } catch (e) {
+        console.error("Error processing markdown:", e);
+        responseArea.textContent += "\n(Error processing Markdown)";
+      }
+    }
+
     if (submitBtn) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit';

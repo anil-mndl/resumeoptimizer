@@ -44,7 +44,7 @@ async function handleGenerateResponse(data, tabId) {
     }
 
     const messages = [
-      { role: "system", content: "You are a helpful assistant for optimizing resumes and applications." },
+      { role: "system", content: "You are a helpful assistant for optimizing resumes and applications. Always format your response using Markdown." },
       { role: "user", content: `Here is the job description or content: "${content}".\n\nHere is my resume: "${resume}".\n\n${prompt}` }
     ];
 
