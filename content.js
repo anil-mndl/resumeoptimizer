@@ -504,7 +504,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
 
       if (updateResumeBtn) {
-        updateResumeBtn.style.display = 'inline-block';
+        updateResumeBtn.style.display = 'block';
+        updateResumeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     } else if (target === 'updated-resume-area') {
       const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
