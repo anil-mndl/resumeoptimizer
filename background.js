@@ -44,8 +44,8 @@ async function handleGenerateResponse(data, tabId) {
     }
 
     const messages = [
-      { role: "system", content: "You are a helpful assistant for optimizing resumes and applications. Always format your response using Markdown." },
-      { role: "user", content: `Here is the job description or content: "${content}".\n\nHere is my resume: "${resume}".\n\n${prompt}` }
+      { role: "system", content: `${prompt}\n\n Always format final response using Markdown. Only the final response should be in markdown.` },
+      { role: "user", content: `Job Description: "${content}".\n\nResume: "${resume}".\n\n` }
     ];
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -55,7 +55,7 @@ async function handleGenerateResponse(data, tabId) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: messages,
         stream: true
       })
