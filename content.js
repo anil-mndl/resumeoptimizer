@@ -126,14 +126,84 @@ function createModal() {
   responseArea.style.overflowY = 'auto';
   responseArea.style.whiteSpace = 'pre-wrap';
 
+  const updateResumeBtn = document.createElement('button');
+  updateResumeBtn.id = 'resume-optimizer-update-resume-btn';
+  updateResumeBtn.className = 'resume-optimizer-secondary-btn';
+  updateResumeBtn.textContent = 'Update My Resume';
+  updateResumeBtn.style.display = 'none';
+  updateResumeBtn.style.marginTop = '10px';
+  updateResumeBtn.addEventListener('click', handleUpdateResumeClick);
+
   responseGroup.appendChild(responseLabel);
   responseGroup.appendChild(responseArea);
+  responseGroup.appendChild(updateResumeBtn);
+
+  // Updated Resume Group (Hidden by default)
+  const updatedResumeGroup = document.createElement('div');
+  updatedResumeGroup.className = 'resume-optimizer-form-group';
+  updatedResumeGroup.id = 'resume-optimizer-updated-resume-group';
+  updatedResumeGroup.style.display = 'none';
+
+  const updatedResumeLabel = document.createElement('label');
+  updatedResumeLabel.className = 'resume-optimizer-label';
+  updatedResumeLabel.textContent = 'Updated Resume';
+
+  // Content area for Updated Resume (Display Mode - HTML)
+  const updatedResumeDisplay = document.createElement('div');
+  updatedResumeDisplay.id = 'resume-optimizer-updated-resume-display';
+  updatedResumeDisplay.className = 'resume-optimizer-textarea';
+  updatedResumeDisplay.style.backgroundColor = '#f4f4f4';
+  updatedResumeDisplay.style.overflowY = 'auto';
+  updatedResumeDisplay.style.display = 'block';
+
+  // Content area for Updated Resume (Edit Mode - Textarea)
+  const updatedResumeEdit = document.createElement('textarea');
+  updatedResumeEdit.id = 'resume-optimizer-updated-resume-edit';
+  updatedResumeEdit.className = 'resume-optimizer-textarea';
+  updatedResumeEdit.style.display = 'none';
+
+  // Action Buttons container for Updated Resume
+  const updatedResumeActions = document.createElement('div');
+  updatedResumeActions.style.marginTop = '10px';
+  updatedResumeActions.style.display = 'flex';
+  updatedResumeActions.style.gap = '10px';
+
+  const editResumeBtn = document.createElement('button');
+  editResumeBtn.id = 'resume-optimizer-edit-resume-btn';
+  editResumeBtn.className = 'resume-optimizer-secondary-btn';
+  editResumeBtn.textContent = 'Edit';
+  editResumeBtn.style.display = 'none'; // Hidden until generation complete
+  editResumeBtn.addEventListener('click', handleEditResume);
+
+  const doneEditingBtn = document.createElement('button');
+  doneEditingBtn.id = 'resume-optimizer-done-editing-btn';
+  doneEditingBtn.className = 'resume-optimizer-secondary-btn';
+  doneEditingBtn.textContent = 'Done Editing';
+  doneEditingBtn.style.display = 'none';
+  doneEditingBtn.addEventListener('click', handleDoneEditing);
+
+  const downloadPdfBtn = document.createElement('button');
+  downloadPdfBtn.id = 'resume-optimizer-download-pdf-btn';
+  downloadPdfBtn.className = 'resume-optimizer-secondary-btn';
+  downloadPdfBtn.textContent = 'Download PDF';
+  downloadPdfBtn.style.display = 'none'; // Hidden until generation complete
+  downloadPdfBtn.addEventListener('click', handleDownloadPDF);
+
+  updatedResumeActions.appendChild(editResumeBtn);
+  updatedResumeActions.appendChild(doneEditingBtn);
+  updatedResumeActions.appendChild(downloadPdfBtn);
+
+  updatedResumeGroup.appendChild(updatedResumeLabel);
+  updatedResumeGroup.appendChild(updatedResumeDisplay);
+  updatedResumeGroup.appendChild(updatedResumeEdit);
+  updatedResumeGroup.appendChild(updatedResumeActions);
 
   body.appendChild(promptGroup);
   body.appendChild(customPromptGroup);
   body.appendChild(textGroup);
   body.appendChild(resumeGroup);
   body.appendChild(responseGroup);
+  body.appendChild(updatedResumeGroup);
 
   // Footer
   const footer = document.createElement('div');
@@ -267,54 +337,208 @@ function handleSubmit() {
     responseArea.textContent = '';
     responseArea.style.whiteSpace = 'pre-wrap'; // Reset for streaming
 
+    // Hide update button and updated resume area if re-submitting
+    const updateResumeBtn = document.getElementById('resume-optimizer-update-resume-btn');
+    if (updateResumeBtn) updateResumeBtn.style.display = 'none';
+    const updatedResumeGroup = document.getElementById('resume-optimizer-updated-resume-group');
+    if (updatedResumeGroup) updatedResumeGroup.style.display = 'none';
+
     chrome.runtime.sendMessage({
       action: 'generate_response',
       prompt: selectedPrompt,
       content: selectionText,
-      resume: resume
+      resume: resume,
+      outputTarget: 'response-area'
     });
   });
 }
 
+function handleUpdateResumeClick() {
+  const updateResumeBtn = document.getElementById('resume-optimizer-update-resume-btn');
+  const updatedResumeGroup = document.getElementById('resume-optimizer-updated-resume-group');
+  const responseArea = document.getElementById('resume-optimizer-response-area');
+  const resumeArea = document.getElementById('resume-optimizer-resume-area');
+  const updatedResumeDisplay = document.getElementById('resume-optimizer-updated-resume-display');
+  const updatedResumeEdit = document.getElementById('resume-optimizer-updated-resume-edit');
+
+  if (updateResumeBtn) updateResumeBtn.style.display = 'none';
+  if (updatedResumeGroup) updatedResumeGroup.style.display = 'flex';
+
+  // Prepare UI for streaming
+  if (updatedResumeDisplay) {
+    updatedResumeDisplay.textContent = 'Generating updated resume...';
+    updatedResumeDisplay.style.whiteSpace = 'pre-wrap';
+    updatedResumeDisplay.style.display = 'block';
+  }
+  if (updatedResumeEdit) {
+    updatedResumeEdit.value = '';
+    updatedResumeEdit.style.display = 'none';
+  }
+
+  // Hide action buttons during generation
+  document.getElementById('resume-optimizer-edit-resume-btn').style.display = 'none';
+  document.getElementById('resume-optimizer-done-editing-btn').style.display = 'none';
+  document.getElementById('resume-optimizer-download-pdf-btn').style.display = 'none';
+
+  const suggestions = responseArea ? responseArea.innerText : '';
+  const currentResume = resumeArea ? resumeArea.value : '';
+
+  const prompt = `Here is my current resume:\n${currentResume}\n\nHere are the suggestions for improvement:\n${suggestions}\n\nPlease rewrite the resume applying these suggestions. Return ONLY the updated resume content in Markdown format.`;
+
+  chrome.runtime.sendMessage({
+    action: 'generate_response',
+    prompt: prompt,
+    content: "Resume Update Request", // Placeholder
+    resume: currentResume,
+    outputTarget: 'updated-resume-area'
+  });
+}
+
+function handleEditResume() {
+  const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
+  const editTextarea = document.getElementById('resume-optimizer-updated-resume-edit');
+  const editBtn = document.getElementById('resume-optimizer-edit-resume-btn');
+  const doneBtn = document.getElementById('resume-optimizer-done-editing-btn');
+
+  if (displayDiv && editTextarea) {
+    displayDiv.style.display = 'none';
+    editTextarea.style.display = 'block';
+
+    if (editBtn) editBtn.style.display = 'none';
+    if (doneBtn) doneBtn.style.display = 'inline-block';
+  }
+}
+
+function handleDoneEditing() {
+  const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
+  const editTextarea = document.getElementById('resume-optimizer-updated-resume-edit');
+  const editBtn = document.getElementById('resume-optimizer-edit-resume-btn');
+  const doneBtn = document.getElementById('resume-optimizer-done-editing-btn');
+
+  if (displayDiv && editTextarea) {
+    const rawMarkdown = editTextarea.value;
+    try {
+      const parsedHtml = marked.parse(rawMarkdown);
+      const cleanHtml = DOMPurify.sanitize(parsedHtml);
+      displayDiv.innerHTML = cleanHtml;
+    } catch (e) {
+      console.error("Error processing markdown:", e);
+      displayDiv.textContent = rawMarkdown;
+    }
+
+    displayDiv.style.whiteSpace = 'normal';
+    displayDiv.style.display = 'block';
+    editTextarea.style.display = 'none';
+
+    if (editBtn) editBtn.style.display = 'inline-block';
+    if (doneBtn) doneBtn.style.display = 'none';
+  }
+}
+
+function handleDownloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const editTextarea = document.getElementById('resume-optimizer-updated-resume-edit');
+  const content = editTextarea ? editTextarea.value : '';
+
+  const splitText = doc.splitTextToSize(content, 180);
+  doc.text(splitText, 10, 10);
+  doc.save("updated_resume.pdf");
+}
+
 // Listen for stream updates
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'stream_update') {
-    const responseArea = document.getElementById('resume-optimizer-response-area');
-    if (responseArea) {
-      responseArea.textContent += request.chunk;
-      // Auto-scroll to bottom
-      responseArea.scrollTop = responseArea.scrollHeight;
-    }
-  } else if (request.action === 'stream_end') {
-    const responseArea = document.getElementById('resume-optimizer-response-area');
-    const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+  const target = request.outputTarget || 'response-area';
 
-    if (responseArea) {
-      const rawMarkdown = responseArea.textContent;
-      try {
-        const parsedHtml = marked.parse(rawMarkdown);
-        const cleanHtml = DOMPurify.sanitize(parsedHtml);
-        responseArea.innerHTML = cleanHtml;
-        responseArea.style.whiteSpace = 'normal'; // Allow Markdown to handle spacing
-      } catch (e) {
-        console.error("Error processing markdown:", e);
-        responseArea.textContent += "\n(Error processing Markdown)";
+  if (request.action === 'stream_update') {
+    if (target === 'response-area') {
+      const responseArea = document.getElementById('resume-optimizer-response-area');
+      if (responseArea) {
+        responseArea.textContent += request.chunk;
+        // Auto-scroll to bottom
+        responseArea.scrollTop = responseArea.scrollHeight;
+      }
+    } else if (target === 'updated-resume-area') {
+      const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
+      const editTextarea = document.getElementById('resume-optimizer-updated-resume-edit');
+
+      // If this is the first chunk, clear the "Generating..." message
+      if (displayDiv && displayDiv.textContent === 'Generating updated resume...') {
+        displayDiv.textContent = '';
+      }
+
+      if (displayDiv) {
+        displayDiv.textContent += request.chunk;
+        displayDiv.scrollTop = displayDiv.scrollHeight;
+      }
+      if (editTextarea) {
+        editTextarea.value += request.chunk;
       }
     }
+  } else if (request.action === 'stream_end') {
+    if (target === 'response-area') {
+      const responseArea = document.getElementById('resume-optimizer-response-area');
+      const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+      const updateResumeBtn = document.getElementById('resume-optimizer-update-resume-btn');
 
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+      if (responseArea) {
+        const rawMarkdown = responseArea.textContent;
+        try {
+          const parsedHtml = marked.parse(rawMarkdown);
+          const cleanHtml = DOMPurify.sanitize(parsedHtml);
+          responseArea.innerHTML = cleanHtml;
+          responseArea.style.whiteSpace = 'normal'; // Allow Markdown to handle spacing
+        } catch (e) {
+          console.error("Error processing markdown:", e);
+          responseArea.textContent += "\n(Error processing Markdown)";
+        }
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+
+      if (updateResumeBtn) {
+        updateResumeBtn.style.display = 'inline-block';
+      }
+    } else if (target === 'updated-resume-area') {
+      const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
+      const editBtn = document.getElementById('resume-optimizer-edit-resume-btn');
+      const downloadBtn = document.getElementById('resume-optimizer-download-pdf-btn');
+
+      if (displayDiv) {
+        const rawMarkdown = displayDiv.textContent;
+        try {
+          const parsedHtml = marked.parse(rawMarkdown);
+          const cleanHtml = DOMPurify.sanitize(parsedHtml);
+          displayDiv.innerHTML = cleanHtml;
+          displayDiv.style.whiteSpace = 'normal';
+        } catch (e) {
+          console.error("Error processing markdown:", e);
+        }
+      }
+
+      if (editBtn) editBtn.style.display = 'inline-block';
+      if (downloadBtn) downloadBtn.style.display = 'inline-block';
     }
   } else if (request.action === 'stream_error') {
-    const responseArea = document.getElementById('resume-optimizer-response-area');
-    const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
-    if (responseArea) {
-      responseArea.textContent = 'Error: ' + request.error;
-    }
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+    if (target === 'response-area') {
+      const responseArea = document.getElementById('resume-optimizer-response-area');
+      const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+      if (responseArea) {
+        responseArea.textContent = 'Error: ' + request.error;
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    } else if (target === 'updated-resume-area') {
+      const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
+      if (displayDiv) {
+        displayDiv.textContent = 'Error: ' + request.error;
+      }
     }
   }
 });

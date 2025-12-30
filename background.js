@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleGenerateResponse(data, tabId) {
   try {
-    const { prompt, content, resume } = data;
+    const { prompt, content, resume, outputTarget } = data;
 
     // Retrieve API Key
     const result = await chrome.storage.local.get(['openai_apikey']);
@@ -97,7 +97,8 @@ async function handleGenerateResponse(data, tabId) {
             if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
               chrome.tabs.sendMessage(tabId, {
                 action: 'stream_update',
-                chunk: json.choices[0].delta.content
+                chunk: json.choices[0].delta.content,
+                outputTarget: outputTarget
               });
             }
           } catch (e) {
@@ -107,13 +108,17 @@ async function handleGenerateResponse(data, tabId) {
       }
     }
 
-    chrome.tabs.sendMessage(tabId, { action: 'stream_end' });
+    chrome.tabs.sendMessage(tabId, {
+      action: 'stream_end',
+      outputTarget: outputTarget
+    });
 
   } catch (error) {
     console.error("Error generating response:", error);
     chrome.tabs.sendMessage(tabId, {
       action: 'stream_error',
-      error: error.message
+      error: error.message,
+      outputTarget: outputTarget
     });
   }
 }
