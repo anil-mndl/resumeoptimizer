@@ -504,9 +504,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
 
       if (updateResumeBtn) {
-        updateResumeBtn.style.display = 'block';
+        // Enforce visibility
+        updateResumeBtn.style.setProperty('display', 'block', 'important');
         updateResumeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
+
+      // Ensure container is visible
+      const responseGroup = document.getElementById('resume-optimizer-response-group');
+      if (responseGroup && responseGroup.style.display === 'none') {
+        responseGroup.style.display = 'flex';
+      }
+
     } else if (target === 'updated-resume-area') {
       const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');
       const editBtn = document.getElementById('resume-optimizer-edit-resume-btn');
@@ -531,12 +539,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (target === 'response-area') {
       const responseArea = document.getElementById('resume-optimizer-response-area');
       const submitBtn = document.querySelector('.resume-optimizer-submit-btn');
+      const updateResumeBtn = document.getElementById('resume-optimizer-update-resume-btn');
+
       if (responseArea) {
         responseArea.textContent = 'Error: ' + request.error;
       }
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit';
+      }
+      // Even on error, show the button to allow user to proceed or retry if partial content is useful
+      if (updateResumeBtn) {
+         updateResumeBtn.style.setProperty('display', 'block', 'important');
       }
     } else if (target === 'updated-resume-area') {
       const displayDiv = document.getElementById('resume-optimizer-updated-resume-display');

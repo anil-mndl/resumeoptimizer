@@ -90,22 +90,13 @@ async function handleGenerateResponse(data, tabId) {
       buffer = lines.pop();
 
       for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
-          try {
-            const json = JSON.parse(trimmedLine.substring(6));
-            if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
-              chrome.tabs.sendMessage(tabId, {
-                action: 'stream_update',
-                chunk: json.choices[0].delta.content,
-                outputTarget: outputTarget
-              });
-            }
-          } catch (e) {
-            console.error("Error parsing stream chunk", e);
-          }
-        }
+        processLine(line, tabId, outputTarget);
       }
+    }
+
+    // Process any remaining buffer
+    if (buffer.length > 0) {
+       processLine(buffer, tabId, outputTarget);
     }
 
     chrome.tabs.sendMessage(tabId, {
@@ -120,5 +111,23 @@ async function handleGenerateResponse(data, tabId) {
       error: error.message,
       outputTarget: outputTarget
     });
+  }
+}
+
+function processLine(line, tabId, outputTarget) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
+    try {
+      const json = JSON.parse(trimmedLine.substring(6));
+      if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
+        chrome.tabs.sendMessage(tabId, {
+          action: 'stream_update',
+          chunk: json.choices[0].delta.content,
+          outputTarget: outputTarget
+        });
+      }
+    } catch (e) {
+      console.error("Error parsing stream chunk", e);
+    }
   }
 }
