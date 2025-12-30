@@ -125,6 +125,7 @@ function createModal() {
   responseArea.style.backgroundColor = '#f4f4f4';
   responseArea.style.overflowY = 'auto';
   responseArea.style.whiteSpace = 'pre-wrap';
+  responseArea.style.maxHeight = '300px';
 
   const updateResumeBtn = document.createElement('button');
   updateResumeBtn.id = 'resume-optimizer-update-resume-btn';
@@ -155,12 +156,14 @@ function createModal() {
   updatedResumeDisplay.style.backgroundColor = '#f4f4f4';
   updatedResumeDisplay.style.overflowY = 'auto';
   updatedResumeDisplay.style.display = 'block';
+  updatedResumeDisplay.style.maxHeight = '400px';
 
   // Content area for Updated Resume (Edit Mode - Textarea)
   const updatedResumeEdit = document.createElement('textarea');
   updatedResumeEdit.id = 'resume-optimizer-updated-resume-edit';
   updatedResumeEdit.className = 'resume-optimizer-textarea';
   updatedResumeEdit.style.display = 'none';
+  updatedResumeEdit.style.maxHeight = '400px';
 
   // Action Buttons container for Updated Resume
   const updatedResumeActions = document.createElement('div');
